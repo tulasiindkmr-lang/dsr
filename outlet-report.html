@@ -1,26 +1,74 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Outlet Visit - Tulasi Sales</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outlet Report - Tulasi Sales System</title>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-<h2>Outlet Visit Report</h2>
-<form id="visitForm">
-<div>District: <select id="v_district"></select></div>
-<div>Town: <select id="v_town"></select></div>
-<div>Distributor: <select id="v_distributor"></select></div>
-<div>Outlet: <select id="v_outlet"></select></div>
-<div>Order Taken: <select id="v_order"><option>Yes</option><option>No</option></select></div>
-<div>Stock Available: <select id="v_stock"><option>Yes</option><option>No</option></select></div>
-<div>Display: <select id="v_display"><option>Good</option><option>Average</option><option>Poor</option></select></div>
-<div>Remarks: <textarea id="v_remarks"></textarea></div>
-<div><button type="submit">Submit Visit</button></div>
-</form>
-<script src="scripts/app.js"></script>
-<script>
-if(window.app && app.initVisitForm) app.initVisitForm();
-</script>
+  <h2>Outlet Setup / Report</h2>
+
+  <form id="outletForm">
+    <label>District:</label>
+    <select id="districtSelect"></select>
+    <input type="text" id="newDistrict" placeholder="Add New District">
+
+    <label>Town:</label>
+    <select id="townSelect"></select>
+    <input type="text" id="newTown" placeholder="Add New Town">
+
+    <label>Distributor:</label>
+    <select id="distributorSelect"></select>
+    <input type="text" id="newDistributor" placeholder="Add New Distributor">
+
+    <label>Beat (Optional):</label>
+    <select id="beatSelect"></select>
+    <input type="text" id="newBeat" placeholder="Add New Beat">
+
+    <hr>
+
+    <label>Outlet Name:</label>
+    <input type="text" id="outletName" required>
+
+    <label>Proprietor Name:</label>
+    <input type="text" id="proprietorName">
+
+    <label>WhatsApp Number:</label>
+    <input type="text" id="whatsapp">
+
+    <label>Running Items:</label>
+    <select id="runningItems" multiple></select>
+
+    <label>Grade:</label>
+    <select id="grade">
+      <option value="A">A Grade (10+ cartons)</option>
+      <option value="B">B Grade (5–10 cartons)</option>
+      <option value="C">C Grade (1–5 cartons)</option>
+    </select>
+
+    <button type="submit">Save Outlet</button>
+  </form>
+
+  <hr>
+  <h3>Saved Outlets</h3>
+  <table id="outletTable" border="1" style="width:100%">
+    <thead>
+      <tr>
+        <th>District</th>
+        <th>Town</th>
+        <th>Distributor</th>
+        <th>Beat</th>
+        <th>Outlet</th>
+        <th>Proprietor</th>
+        <th>WhatsApp</th>
+        <th>Items</th>
+        <th>Grade</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="./scripts/app.js"></script>
 </body>
 </html>
