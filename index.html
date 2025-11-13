@@ -10,154 +10,73 @@
   <div id="app" class="max-w-xl mx-auto p-4">
     <header class="mb-4">
       <h1 class="text-2xl font-bold">DSR Secondary Sales</h1>
-      <p class="text-sm text-gray-600">Mobile-first form + Admin panel</p>
+      <p class="text-sm text-gray-600">Mobile Form + Admin Panel</p>
     </header>
 
     <nav class="mb-4 flex gap-2">
-      <button id="nav-submit" class="flex-1 btn bg-white border p-2 rounded">Salesman Login</button>
-      <button id="nav-admin" class="flex-1 btn bg-white border p-2 rounded">Admin Panel</button>
+      <button id="nav-sales" class="flex-1 p-2 border rounded bg-white">Salesman Login</button>
+      <button id="nav-admin" class="flex-1 p-2 border rounded bg-white">Admin Panel</button>
     </nav>
 
     <main id="main"></main>
 
-    <footer class="mt-6 text-xs text-gray-500">Data stored locally (for demo). For production, connect to backend or Google Sheet.</footer>
+    <footer class="mt-6 text-xs text-gray-500">Data stored locally for demo; connect to backend later if needed.</footer>
   </div>
 
 <script>
 const ADMIN_USERNAME = 'csdsradmin';
 const ADMIN_PASSWORD = 'Csr@dsr2500';
+const SALESMAN_LOGIN = { username: 'stidsr', password: 'dsrlite1' };
 
-// Pre-created salesmen accounts (case-insensitive check)
-const SALESMEN = [
-  { username: 'stism1', password: 'liteline101' },
-  { username: 'stism2', password: 'liteline102' },
-  { username: 'stism3', password: 'liteline103' },
-  { username: 'stism4', password: 'liteline104' },
-  { username: 'stism5', password: 'liteline105' },
-  { username: 'stism6', password: 'liteline106' },
-  { username: 'stism7', password: 'liteline107' },
-  { username: 'stism8', password: 'liteline108' },
-  { username: 'stism9', password: 'liteline109' },
-  { username: 'stism10', password: 'liteline110' },
-  // also keep the common login
-  { username: 'stidsr', password: 'dsrlite1' }
-];
-
-const selectors = {
-  main: document.getElementById('main'),
-  navSubmit: document.getElementById('nav-submit'),
-  navAdmin: document.getElementById('nav-admin')
+function validateSalesman(u, p) {
+  return u.trim().toLowerCase() === SALESMAN_LOGIN.username &&
+         p.trim().toLowerCase() === SALESMAN_LOGIN.password;
 }
 
-function loadEntries(){ try{ return JSON.parse(localStorage.getItem('dsr_entries')||'[]') }catch(e){return []} }
+function loadEntries(){ try { return JSON.parse(localStorage.getItem('dsr_entries')||'[]') }catch(e){ return [] } }
 function saveEntries(arr){ localStorage.setItem('dsr_entries', JSON.stringify(arr)) }
 function gradeFromCottons(n){ n = Number(n)||0; if(n>=10) return 'A'; if(n>=5) return 'B'; if(n>=1) return 'C'; return 'N/A'; }
-function downloadCSV(filename, rows){ const header = Object.keys(rows[0]||{}).join(',')+'
-'; const body = rows.map(r=>Object.values(r).map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('
-'); const blob=new Blob([header+body],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url); }
-
-function validateSalesman(u,p){
-  const lowerU = (u||'').toLowerCase();
-  const lowerP = (p||'').toLowerCase();
-  return SALESMEN.some(s => s.username.toLowerCase() === lowerU && s.password.toLowerCase() === lowerP);
+function downloadCSV(filename, rows){
+  if(rows.length===0) return;
+  const header = Object.keys(rows[0]).join(',') + '\n';
+  const body = rows.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([header + body], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
 }
 
-function renderSalesmanLogin(){
-  selectors.main.innerHTML = `
+const main = document.getElementById('main');
+
+function renderSalesLogin() {
+  main.innerHTML = `
   <section class="bg-white p-4 rounded shadow-sm">
     <h2 class="font-semibold mb-2">Salesman Login</h2>
-    <form id="sales-login-form" class="space-y-3">
+    <form id="sales-login" class="space-y-3">
       <div>
         <label class="text-xs">Username</label>
-        <input id="sales-username" required class="w-full border rounded p-2" placeholder="e.g. stism1" />
+        <input id="sales-user" required class="w-full border rounded p-2" placeholder="stidsr">
       </div>
       <div>
         <label class="text-xs">Password</label>
-        <input id="sales-password" type="password" required class="w-full border rounded p-2" placeholder="e.g. liteline101" />
+        <input id="sales-pass" type="password" required class="w-full border rounded p-2" placeholder="dsrlite1">
       </div>
-      <div>
-        <button type="submit" class="w-full p-2 bg-blue-600 text-white rounded">Login</button>
-      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white rounded p-2">Login</button>
     </form>
-    <div class="mt-2 text-xs text-gray-500">Enter your salesman username & password (accounts provided by admin).</div>
   </section>`;
-
-  document.getElementById('sales-login-form').onsubmit = (e)=>{
+  
+  document.getElementById('sales-login').onsubmit = e => {
     e.preventDefault();
-    const u = document.getElementById('sales-username').value.trim();
-    const p = document.getElementById('sales-password').value.trim();
-    if(validateSalesman(u,p)){
-      renderSubmitForm(u);
-    } else {
-      alert('Invalid salesman credentials');
-    }
+    const u = document.getElementById('sales-user').value;
+    const p = document.getElementById('sales-pass').value;
+    if (validateSalesman(u, p)) renderSalesForm();
+    else alert('Invalid credentials');
   }
 }
 
-function renderSubmitForm(loggedUsername){
-  selectors.main.innerHTML = `
-  <section class="bg-white p-4 rounded shadow-sm">
-    <h2 class="font-semibold mb-2">Outlet Sales Submission</h2>
-    <form id="dsr-form" class="space-y-3">
-      <div>
-        <label class="text-xs">Date</label>
-        <input id="fld-date" type="date" required class="w-full border rounded p-2" />
-      </div>
-      <div>
-        <label class="text-xs">Executive Name (type your name)</label>
-        <input id="fld-exec" required class="w-full border rounded p-2" placeholder="Enter executive name" />
-      </div>
-      <div>
-        <label class="text-xs">Distributor Name</label>
-        <input id="fld-distributor" class="w-full border rounded p-2" />
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="text-xs">District</label>
-          <input id="fld-district" class="w-full border rounded p-2" />
-        </div>
-        <div>
-          <label class="text-xs">Beat Location</label>
-          <input id="fld-beat" class="w-full border rounded p-2" />
-        </div>
-      </div>
-      <div>
-        <label class="text-xs">Outlet Name</label>
-        <input id="fld-outlet" class="w-full border rounded p-2" />
-      </div>
-      <div>
-        <label class="text-xs">Outlet Proprietor Name</label>
-        <input id="fld-prop" class="w-full border rounded p-2" />
-      </div>
-      <div>
-        <label class="text-xs">WhatsApp Number</label>
-        <input id="fld-whatsapp" class="w-full border rounded p-2" inputmode="tel" />
-      </div>
-      <div>
-        <label class="text-xs">Select running items for outlet (choose multiple)</label>
-        <div id="items-container" class="grid grid-cols-1 gap-2 mt-2"></div>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="text-xs">Cottons (numeric)</label>
-          <input id="fld-cottons" type="number" min="0" class="w-full border rounded p-2" />
-        </div>
-        <div>
-          <label class="text-xs">Computed Grade</label>
-          <input id="fld-grade" readonly class="w-full border rounded p-2 bg-gray-100" />
-        </div>
-      </div>
-      <div>
-        <label class="text-xs">Remarks</label>
-        <textarea id="fld-remarks" class="w-full border rounded p-2" rows="2"></textarea>
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="flex-1 p-2 bg-green-600 text-white rounded">Submit</button>
-        <button id="clear-form" type="button" class="flex-1 p-2 border rounded">Clear</button>
-      </div>
-    </form>
-  </section>`;
-
+function renderSalesForm() {
   const items = [
     'TASTY GOLD NATURAL GN',
     'TASTY GOLD LITE SFR',
@@ -165,103 +84,169 @@ function renderSubmitForm(loggedUsername){
     'TASTY GOLD GN MULTI SOURCE',
     'DEEPAM OIL'
   ];
-  const container = document.getElementById('items-container');
-  container.innerHTML = items.map(it=>`<label class='flex items-center gap-2'><input type='checkbox' value='${it}' class='item-chk'/> <span class='text-sm'>${it}</span></label>`).join('');
+  main.innerHTML = `
+  <section class="bg-white p-4 rounded shadow-sm">
+    <h2 class="font-semibold mb-2">Outlet Sales Form</h2>
+    <form id="sales-form" class="space-y-3">
+      <div>
+        <label class="text-xs">Date</label>
+        <input id="fld-date" type="date" required class="w-full border rounded p-2">
+      </div>
+      <div>
+        <label class="text-xs">Executive Name</label>
+        <input id="fld-exec" required class="w-full border rounded p-2" placeholder="Type your name">
+      </div>
+      <div>
+        <label class="text-xs">Distributor Name</label>
+        <input id="fld-distributor" class="w-full border rounded p-2">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-xs">District</label>
+          <input id="fld-district" class="w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="text-xs">Beat Location</label>
+          <input id="fld-beat" class="w-full border rounded p-2">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs">Outlet Name</label>
+        <input id="fld-outlet" class="w-full border rounded p-2">
+      </div>
+      <div>
+        <label class="text-xs">Outlet Proprietor Name</label>
+        <input id="fld-prop" class="w-full border rounded p-2">
+      </div>
+      <div>
+        <label class="text-xs">WhatsApp Number</label>
+        <input id="fld-whatsapp" class="w-full border rounded p-2" inputmode="tel">
+      </div>
+      <div>
+        <label class="text-xs">Running Items (select multiple)</label>
+        <div id="items-list" class="grid grid-cols-1 gap-2 mt-1"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-xs">Cottons</label>
+          <input id="fld-cottons" type="number" min="0" class="w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="text-xs">Grade</label>
+          <input id="fld-grade" readonly class="w-full border rounded p-2 bg-gray-100">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs">Remarks</label>
+        <textarea id="fld-remarks" rows="2" class="w-full border rounded p-2"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-green-600 text-white rounded p-2">Submit</button>
+    </form>
+  </section>`;
 
-  const fldCottons = document.getElementById('fld-cottons');
-  const fldGrade = document.getElementById('fld-grade');
-  fldCottons.oninput = ()=> fldGrade.value = gradeFromCottons(fldCottons.value);
+  document.getElementById('items-list').innerHTML = 
+    items.map(i => `<label class="flex items-center gap-2">
+      <input type="checkbox" value="${i}" class="item"> <span class="text-sm">${i}</span>
+    </label>`).join('');
 
-  document.getElementById('dsr-form').onsubmit = (e)=>{
+  const cottons = document.getElementById('fld-cottons');
+  const grade = document.getElementById('fld-grade');
+  cottons.oninput = () => grade.value = gradeFromCottons(cottons.value);
+
+  document.getElementById('sales-form').onsubmit = e => {
     e.preventDefault();
-    const execName = document.getElementById('fld-exec').value.trim();
-    if(!execName){ alert('Executive name is required'); return }
-    const entry = {
-      date: document.getElementById('fld-date').value || new Date().toISOString().slice(0,10),
-      executive: execName,
-      submitted_by_username: loggedUsername,
+    const data = {
+      date: document.getElementById('fld-date').value,
+      executive: document.getElementById('fld-exec').value,
       distributor: document.getElementById('fld-distributor').value,
       district: document.getElementById('fld-district').value,
-      beat_location: document.getElementById('fld-beat').value,
-      outlet_name: document.getElementById('fld-outlet').value,
-      outlet_proprietor: document.getElementById('fld-prop').value,
+      beat: document.getElementById('fld-beat').value,
+      outlet: document.getElementById('fld-outlet').value,
+      proprietor: document.getElementById('fld-prop').value,
       whatsapp: document.getElementById('fld-whatsapp').value,
-      running_items: Array.from(document.querySelectorAll('.item-chk:checked')).map(i=>i.value).join('; '),
+      items: Array.from(document.querySelectorAll('.item:checked')).map(i=>i.value).join('; '),
       cottons: document.getElementById('fld-cottons').value,
-      grade: document.getElementById('fld-grade').value,
+      grade: grade.value,
       remarks: document.getElementById('fld-remarks').value,
-      submitted_at: new Date().toISOString()
+      submitted_at: new Date().toLocaleString()
     };
-    const all = loadEntries();
-    all.unshift(entry);
-    saveEntries(all);
-    alert('Submitted — saved locally. Admin can view & export.');
-    document.getElementById('dsr-form').reset();
-    fldGrade.value = '';
-  }
-  document.getElementById('clear-form').onclick = ()=> document.getElementById('dsr-form').reset();
+    const entries = loadEntries();
+    entries.unshift(data);
+    saveEntries(entries);
+    alert('Submitted successfully!');
+    e.target.reset();
+    grade.value = '';
+  };
 }
 
-function renderAdminLogin(){
-  selectors.main.innerHTML = `
+function renderAdminLogin() {
+  main.innerHTML = `
   <section class="bg-white p-4 rounded shadow-sm">
     <h2 class="font-semibold mb-2">Admin Login</h2>
     <form id="admin-login" class="space-y-3">
       <div>
         <label class="text-xs">Username</label>
-        <input id="admin-user" required class="w-full border rounded p-2" />
+        <input id="admin-user" required class="w-full border rounded p-2">
       </div>
       <div>
         <label class="text-xs">Password</label>
-        <input id="admin-pass" type="password" required class="w-full border rounded p-2" />
+        <input id="admin-pass" type="password" required class="w-full border rounded p-2">
       </div>
-      <div>
-        <button type="submit" class="w-full p-2 bg-indigo-600 text-white rounded">Login</button>
-      </div>
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded p-2">Login</button>
     </form>
   </section>`;
-
-  document.getElementById('admin-login').onsubmit = (e)=>{
+  document.getElementById('admin-login').onsubmit = e => {
     e.preventDefault();
-    const u = document.getElementById('admin-user').value.trim();
+    const u = document.getElementById('admin-user').value;
     const p = document.getElementById('admin-pass').value;
-    if(u === ADMIN_USERNAME && p === ADMIN_PASSWORD){
-      renderAdminPanel();
-    } else {
-      alert('Invalid admin credentials');
-    }
-  }
+    if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) renderAdminPanel();
+    else alert('Invalid admin credentials');
+  };
 }
 
-function renderAdminPanel(){
+function renderAdminPanel() {
   const entries = loadEntries();
-  selectors.main.innerHTML = `
+  main.innerHTML = `
   <section class="bg-white p-4 rounded shadow-sm space-y-3">
     <h2 class="font-semibold">Admin Panel</h2>
     <div class="grid grid-cols-2 gap-2">
-      <button id="btn-refresh" class="p-2 border rounded">Refresh</button>
-      <button id="btn-export" class="p-2 border rounded">Export CSV</button>
+      <button id="refresh" class="p-2 border rounded">Refresh</button>
+      <button id="export" class="p-2 border rounded">Export CSV</button>
     </div>
-    <div>
-      <h3 class="font-medium mt-2">Submitted Entries</h3>
-      <div id="entries-list" class="mt-2 text-sm"></div>
-    </div>
+    <div id="data" class="mt-2 text-sm"></div>
   </section>`;
 
-  function drawEntries(){
+  function draw() {
     const arr = loadEntries();
-    const el = document.getElementById('entries-list');
-    if(arr.length===0){ el.innerHTML = '<div class="text-gray-500">No submissions yet</div>'; return }
-    el.innerHTML = `<div class="overflow-auto max-h-96"><table class="w-full text-xs border-collapse"><thead class="bg-gray-100 sticky top-0"><tr>${Object.keys(arr[0]).map(k=>`<th class='p-1 text-left border'>${k}</th>`).join('')}</tr></thead><tbody>${arr.map(r=>`<tr class='border-t'>${Object.values(r).map(v=>`<td class='p-1 border align-top'>${String(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const el = document.getElementById('data');
+    if (arr.length === 0) {
+      el.innerHTML = '<div class="text-gray-500">No submissions yet</div>';
+      return;
+    }
+    el.innerHTML = `
+    <div class="overflow-auto max-h-96">
+      <table class="w-full text-xs border-collapse">
+        <thead class="bg-gray-100 sticky top-0">
+          <tr>${Object.keys(arr[0]).map(k=>`<th class='border p-1 text-left'>${k}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          ${arr.map(r => `<tr>${Object.values(r).map(v => `<td class='border p-1'>${v}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
   }
-  drawEntries();
-  document.getElementById('btn-refresh').onclick = drawEntries;
-  document.getElementById('btn-export').onclick = ()=>{ const arr=loadEntries(); if(arr.length===0){alert('No data');return;} downloadCSV('dsr_export_'+new Date().toISOString().slice(0,10)+'.csv', arr); }
+  draw();
+  document.getElementById('refresh').onclick = draw;
+  document.getElementById('export').onclick = () => {
+    const arr = loadEntries();
+    if (arr.length === 0) return alert('No data to export');
+    downloadCSV('dsr_export.csv', arr);
+  };
 }
 
-selectors.navSubmit.onclick = renderSalesmanLogin;
-selectors.navAdmin.onclick = renderAdminLogin;
-renderSalesmanLogin();
+document.getElementById('nav-sales').onclick = renderSalesLogin;
+document.getElementById('nav-admin').onclick = renderAdminLogin;
+renderSalesLogin();
 </script>
 </body>
 </html>
